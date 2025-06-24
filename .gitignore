@@ -22,6 +22,7 @@ pnpm-debug.log*
 # Coverage reports
 /coverage/
 /reports/
+/test-reports/
 
 # IDE/editor settings
 .vscode/
