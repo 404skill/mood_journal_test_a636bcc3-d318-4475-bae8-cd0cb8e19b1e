@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="14" failures="14" errors="0" time="14.15">
+  <testsuite name="Task 1: /api/health" errors="0" failures="14" skipped="0" timestamp="2025-06-24T13:36:54" time="13.917" tests="14">
+    <testcase classname="Task 1: /api/health 200 OK and correct body" name="Task 1: /api/health 200 OK and correct body" time="1.114">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood GET /api/entries initially → empty array" name="Tasks 2–4: CRUD + Mood GET /api/entries initially → empty array" time="1.016">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood POST /api/entries rejects invalid text" name="Tasks 2–4: CRUD + Mood POST /api/entries rejects invalid text" time="1.008">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood POST /api/entries creates entry" name="Tasks 2–4: CRUD + Mood POST /api/entries creates entry" time="1.02">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood GET /api/entries returns that entry" name="Tasks 2–4: CRUD + Mood GET /api/entries returns that entry" time="1.019">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood FILTER by mood via ?moods=" name="Tasks 2–4: CRUD + Mood FILTER by mood via ?moods=" time="1.024">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood FILTER by date via ?startDate=&amp;endDate=" name="Tasks 2–4: CRUD + Mood FILTER by date via ?startDate=&amp;endDate=" time="1.023">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood GET /api/entries/:id – invalid &amp; not found → 404" name="Tasks 2–4: CRUD + Mood GET /api/entries/:id – invalid &amp; not found → 404" time="1.018">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood GET /api/entries/:id returns mood" name="Tasks 2–4: CRUD + Mood GET /api/entries/:id returns mood" time="1.028">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood PUT /api/entries/:id validates &amp; updates" name="Tasks 2–4: CRUD + Mood PUT /api/entries/:id validates &amp; updates" time="1.014">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 2–4: CRUD + Mood DELETE /api/entries/:id validates &amp; deletes" name="Tasks 2–4: CRUD + Mood DELETE /api/entries/:id validates &amp; deletes" time="1.016">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 6–7: /api/mood/summary + time filtering GET /api/mood/summary returns counts" name="Tasks 6–7: /api/mood/summary + time filtering GET /api/mood/summary returns counts" time="0">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 6–7: /api/mood/summary + time filtering filters summary by date range" name="Tasks 6–7: /api/mood/summary + time filtering filters summary by date range" time="0">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+    <testcase classname="Tasks 6–7: /api/mood/summary + time filtering invalid date format → 400" name="Tasks 6–7: /api/mood/summary + time filtering invalid date format → 400" time="0">
+      <failure>Error: getaddrinfo ENOTFOUND mood-journal-api
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

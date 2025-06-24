@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "test": "jest --runInBand --ci"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "supertest": "^6.0.0",
+    "jest-junit": "^13.0.0"
+  },
+  "jest": {
+    "reporters": [
+      "default",
+      ["jest-junit", {
+        "outputDirectory": "test-reports",
+        "outputName": "results.xml"
+      }]
+    ]
+  }
+}
