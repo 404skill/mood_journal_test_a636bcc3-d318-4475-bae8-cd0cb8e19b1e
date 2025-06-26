@@ -57,91 +57,87 @@ describe("Task 1: Health Check Endpoint", () => {
 });
 
 describe("Task 2: Journal Entry Model and POST Route", () => {
-  describe("Input Validation", () => {
-    it("should reject POST requests with missing text field", async () => {
-      const { status, body } = await api.post("/api/entries").send({});
+  it("should reject POST requests with missing text field", async () => {
+    const { status, body } = await api.post("/api/entries").send({});
+
+    expect(status).toBe(
+      400,
+      "POST /api/entries should return 400 when text field is missing"
+    );
+    expect(body).toEqual(
+      { error: "Text must not be empty" },
+      "Should return specific error message for missing text"
+    );
+  });
+
+  it("should reject POST requests with empty or whitespace-only text", async () => {
+    for (const invalidText of invalidTexts.filter(
+      (t) => t !== null && t !== undefined
+    )) {
+      const { status, body } = await api
+        .post("/api/entries")
+        .send({ text: invalidText });
 
       expect(status).toBe(
         400,
-        "POST /api/entries should return 400 when text field is missing"
+        `POST /api/entries should return 400 for invalid text: "${invalidText}"`
       );
       expect(body).toEqual(
         { error: "Text must not be empty" },
-        "Should return specific error message for missing text"
+        `Should return error for whitespace text: "${invalidText}"`
       );
-    });
-
-    it("should reject POST requests with empty or whitespace-only text", async () => {
-      for (const invalidText of invalidTexts.filter(
-        (t) => t !== null && t !== undefined
-      )) {
-        const { status, body } = await api
-          .post("/api/entries")
-          .send({ text: invalidText });
-
-        expect(status).toBe(
-          400,
-          `POST /api/entries should return 400 for invalid text: "${invalidText}"`
-        );
-        expect(body).toEqual(
-          { error: "Text must not be empty" },
-          `Should return error for whitespace text: "${invalidText}"`
-        );
-      }
-    });
-
-    it("should reject POST requests with null or undefined text", async () => {
-      for (const invalidText of [null, undefined]) {
-        const { status, body } = await api
-          .post("/api/entries")
-          .send({ text: invalidText });
-
-        expect(status).toBe(
-          400,
-          `POST /api/entries should return 400 for ${invalidText} text`
-        );
-        expect(body).toEqual(
-          { error: "Text must not be empty" },
-          `Should return error for ${invalidText} text`
-        );
-      }
-    });
+    }
   });
 
-  describe("Successful Entry Creation", () => {
-    it("should successfully create entry and return 201 with valid UUID", async () => {
-      const entryText = "My first journal entry";
+  it("should reject POST requests with null or undefined text", async () => {
+    for (const invalidText of [null, undefined]) {
       const { status, body } = await api
         .post("/api/entries")
-        .send({ text: entryText });
+        .send({ text: invalidText });
 
       expect(status).toBe(
-        201,
-        "POST /api/entries should return 201 Created for valid entry"
+        400,
+        `POST /api/entries should return 400 for ${invalidText} text`
       );
-      expect(body).toHaveProperty("id");
-      expect(typeof body.id).toBe("string", "Entry ID should be a string");
-      expect(body.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-        "Entry ID should be a valid UUID format"
+      expect(body).toEqual(
+        { error: "Text must not be empty" },
+        `Should return error for ${invalidText} text`
       );
-    });
+    }
+  });
 
-    it("should create multiple entries with unique IDs", async () => {
-      const ids = [];
+  it("should successfully create entry and return 201 with valid UUID", async () => {
+    const entryText = "My first journal entry";
+    const { status, body } = await api
+      .post("/api/entries")
+      .send({ text: entryText });
 
-      for (const text of validTexts.slice(0, 3)) {
-        const { status, body } = await api.post("/api/entries").send({ text });
-        expect(status).toBe(201, `Should create entry for text: "${text}"`);
-        ids.push(body.id);
-      }
+    expect(status).toBe(
+      201,
+      "POST /api/entries should return 201 Created for valid entry"
+    );
+    expect(body).toHaveProperty("id");
+    expect(typeof body.id).toBe("string", "Entry ID should be a string");
+    expect(body.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      "Entry ID should be a valid UUID format"
+    );
+  });
 
-      const uniqueIds = new Set(ids);
-      expect(uniqueIds.size).toBe(
-        ids.length,
-        "All created entries should have unique IDs"
-      );
-    });
+  it("should create multiple entries with unique IDs", async () => {
+    const ids = [];
+
+    for (const text of validTexts.slice(0, 3)) {
+      const { status, body } = await api.post("/api/entries").send({ text });
+      expect(status).toBe(201, `Should create entry for text: "${text}"`);
+      ids.push(body.id);
+    }
+
+    const uniqueIds = new Set(ids);
+    expect(uniqueIds.size).toBe(
+      ids.length,
+      "All created entries should have unique IDs"
+    );
   });
 });
 
@@ -153,180 +149,159 @@ describe("Task 3: CRUD Operations", () => {
     testEntryId = await createEntry(testText);
   });
 
-  describe("GET /api/entries - List All Entries", () => {
-    it("should return 200 OK with array of entries when no query parameters provided", async () => {
-      const { status, body } = await listEntries();
+  it("should return 200 OK with array of entries when no query parameters provided", async () => {
+    const { status, body } = await listEntries();
 
-      expect(status).toBe(200, "GET /api/entries should return 200 OK");
-      expect(Array.isArray(body)).toBe(true, "Response should be an array");
-      expect(body.length).toBeGreaterThan(0, "Should have at least one entry");
-    });
-
-    it("should return entries with correct structure including all required fields", async () => {
-      const { status, body } = await listEntries();
-
-      expect(status).toBe(200, "GET /api/entries should return 200 OK");
-
-      const entry = body.find((e) => e.id === testEntryId);
-      expect(entry).toBeDefined();
-      expect(entry).toHaveProperty("id");
-      expect(entry).toHaveProperty("text");
-      expect(entry).toHaveProperty("createdAt");
-      expect(entry).toHaveProperty("mood");
-
-      expect(typeof entry.id).toBe("string", "Entry ID should be string");
-      expect(typeof entry.text).toBe("string", "Entry text should be string");
-      expect(typeof entry.createdAt).toBe(
-        "string",
-        "Entry createdAt should be string"
-      );
-      expect(typeof entry.mood).toBe("string", "Entry mood should be string");
-
-      expect(entry.text).toBe(
-        testText,
-        "Entry text should match what was created"
-      );
-    });
+    expect(status).toBe(200, "GET /api/entries should return 200 OK");
+    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+    expect(body.length).toBeGreaterThan(0, "Should have at least one entry");
   });
 
-  describe("GET /api/entries/:id - Get Specific Entry", () => {
-    it("should return 200 OK with correct entry for valid UUID", async () => {
-      const { status, body } = await getEntry(testEntryId);
+  it("should return entries with correct structure including all required fields", async () => {
+    const { status, body } = await listEntries();
+
+    expect(status).toBe(200, "GET /api/entries should return 200 OK");
+
+    const entry = body.find((e) => e.id === testEntryId);
+    expect(entry).toBeDefined();
+    expect(entry).toHaveProperty("id");
+    expect(entry).toHaveProperty("text");
+    expect(entry).toHaveProperty("createdAt");
+    expect(entry).toHaveProperty("mood");
+
+    expect(typeof entry.id).toBe("string", "Entry ID should be string");
+    expect(typeof entry.text).toBe("string", "Entry text should be string");
+    expect(typeof entry.createdAt).toBe(
+      "string",
+      "Entry createdAt should be string"
+    );
+    expect(typeof entry.mood).toBe("string", "Entry mood should be string");
+
+    expect(entry.text).toBe(
+      testText,
+      "Entry text should match what was created"
+    );
+  });
+
+  it("should return 200 OK with correct entry for valid UUID", async () => {
+    const { status, body } = await getEntry(testEntryId);
+
+    expect(status).toBe(
+      200,
+      "GET /api/entries/:id should return 200 for valid UUID"
+    );
+    expect(body).toHaveProperty(
+      "id",
+      testEntryId,
+      "Should return entry with matching ID"
+    );
+    expect(body.text).toBe(testText);
+    expect(body).toHaveProperty("createdAt");
+    expect(body).toHaveProperty("mood");
+  });
+
+  it("should return 404 for non-existent but valid UUID", async () => {
+    const nonExistentId = "00000000-0000-0000-0000-000000000000";
+    const { status } = await getEntry(nonExistentId);
+
+    expect(status).toBe(
+      404,
+      "GET /api/entries/:id should return 404 for non-existent entry"
+    );
+  });
+
+  it("should return 400 for invalid UUID format", async () => {
+    const invalidIds = ["not-a-uuid", "123", "invalid-format"];
+
+    for (const invalidId of invalidIds) {
+      const { status } = await getEntry(invalidId);
+      expect(status).toBe(
+        400,
+        `GET /api/entries/:id should return 400 for invalid UUID: "${invalidId}"`
+      );
+    }
+  });
+
+  it("should return 400 for empty or invalid text during update", async () => {
+    for (const invalidText of invalidTexts.filter(
+      (t) => t !== null && t !== undefined
+    )) {
+      const { status, body } = await updateEntry(testEntryId, invalidText);
 
       expect(status).toBe(
-        200,
-        "GET /api/entries/:id should return 200 for valid UUID"
+        400,
+        `PUT should return 400 for invalid text: "${invalidText}"`
       );
-      expect(body).toHaveProperty(
-        "id",
-        testEntryId,
-        "Should return entry with matching ID"
-      );
-      expect(body.text).toBe(testText);
-      expect(body).toHaveProperty("createdAt");
-      expect(body).toHaveProperty("mood");
-    });
+      expect(body).toHaveProperty("error");
+    }
+  });
 
-    it("should return 404 for non-existent but valid UUID", async () => {
-      const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      const { status } = await getEntry(nonExistentId);
+  it("should return 404 for non-existent entry during update", async () => {
+    const nonExistentId = "00000000-0000-0000-0000-000000000000";
+    const { status } = await updateEntry(nonExistentId, "Updated text");
 
+    expect(status).toBe(404, "PUT should return 404 for non-existent entry");
+  });
+
+  it("should return 400 for invalid UUID format during update", async () => {
+    const invalidIds = ["not-a-uuid", "123", "invalid-format"];
+
+    for (const invalidId of invalidIds) {
+      const { status } = await updateEntry(invalidId, "Updated text");
       expect(status).toBe(
-        404,
-        "GET /api/entries/:id should return 404 for non-existent entry"
+        400,
+        `PUT should return 400 for invalid UUID: "${invalidId}"`
       );
-    });
-
-    it("should return 400 for invalid UUID format", async () => {
-      const invalidIds = ["not-a-uuid", "123", "invalid-format"];
-
-      for (const invalidId of invalidIds) {
-        const { status } = await getEntry(invalidId);
-        expect(status).toBe(
-          400,
-          `GET /api/entries/:id should return 400 for invalid UUID: "${invalidId}"`
-        );
-      }
-    });
+    }
   });
 
-  describe("PUT /api/entries/:id - Update Entry", () => {
-    it("should return 400 for empty or invalid text during update", async () => {
-      for (const invalidText of invalidTexts.filter(
-        (t) => t !== null && t !== undefined
-      )) {
-        const { status, body } = await updateEntry(testEntryId, invalidText);
+  it("should successfully update entry and return 200 with entry ID", async () => {
+    const updatedText = "This is the updated text";
+    const { status, body } = await updateEntry(testEntryId, updatedText);
 
-        expect(status).toBe(
-          400,
-          `PUT should return 400 for invalid text: "${invalidText}"`
-        );
-        expect(body).toHaveProperty("error");
-      }
-    });
+    expect(status).toBe(200, "PUT should return 200 for successful update");
+    expect(body).toEqual({ id: testEntryId }, "Should return updated entry ID");
 
-    it("should return 404 for non-existent entry during update", async () => {
-      const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      const { status } = await updateEntry(nonExistentId, "Updated text");
-
-      expect(status).toBe(404, "PUT should return 404 for non-existent entry");
-    });
-
-    it("should return 400 for invalid UUID format during update", async () => {
-      const invalidIds = ["not-a-uuid", "123", "invalid-format"];
-
-      for (const invalidId of invalidIds) {
-        const { status } = await updateEntry(invalidId, "Updated text");
-        expect(status).toBe(
-          400,
-          `PUT should return 400 for invalid UUID: "${invalidId}"`
-        );
-      }
-    });
-
-    it("should successfully update entry and return 200 with entry ID", async () => {
-      const updatedText = "This is the updated text";
-      const { status, body } = await updateEntry(testEntryId, updatedText);
-
-      expect(status).toBe(200, "PUT should return 200 for successful update");
-      expect(body).toEqual(
-        { id: testEntryId },
-        "Should return updated entry ID"
-      );
-
-      const { body: updatedEntry } = await getEntry(testEntryId);
-      expect(updatedEntry.text).toBe(
-        updatedText,
-        "Entry text should be updated"
-      );
-      expect(updatedEntry).toHaveProperty("updatedAt");
-      expect(typeof updatedEntry.updatedAt).toBe(
-        "string",
-        "updatedAt should be a string timestamp"
-      );
-    });
+    const { body: updatedEntry } = await getEntry(testEntryId);
+    expect(updatedEntry.text).toBe(updatedText, "Entry text should be updated");
+    expect(updatedEntry).toHaveProperty("updatedAt");
+    expect(typeof updatedEntry.updatedAt).toBe(
+      "string",
+      "updatedAt should be a string timestamp"
+    );
   });
 
-  describe("DELETE /api/entries/:id - Delete Entry", () => {
+  it("should return 400 for invalid UUID format during delete", async () => {
+    const invalidIds = ["not-a-uuid", "123", "invalid-format"];
+
+    for (const invalidId of invalidIds) {
+      const { status } = await deleteEntry(invalidId);
+      expect(status).toBe(
+        400,
+        `DELETE should return 400 for invalid UUID: "${invalidId}"`
+      );
+    }
+  });
+
+  it("should return 404 for non-existent entry during delete", async () => {
+    const nonExistentId = "00000000-0000-0000-0000-000000000000";
+    const { status } = await deleteEntry(nonExistentId);
+
+    expect(status).toBe(404, "DELETE should return 404 for non-existent entry");
+  });
+
+  it("should successfully delete entry and return 204", async () => {
     let entryToDelete;
+    entryToDelete = await createEntry("Entry to be deleted");
+    const { status } = await deleteEntry(entryToDelete);
 
-    beforeEach(async () => {
-      entryToDelete = await createEntry("Entry to be deleted");
-    });
+    expect(status).toBe(
+      204,
+      "DELETE should return 204 for successful deletion"
+    );
 
-    it("should return 400 for invalid UUID format during delete", async () => {
-      const invalidIds = ["not-a-uuid", "123", "invalid-format"];
-
-      for (const invalidId of invalidIds) {
-        const { status } = await deleteEntry(invalidId);
-        expect(status).toBe(
-          400,
-          `DELETE should return 400 for invalid UUID: "${invalidId}"`
-        );
-      }
-    });
-
-    it("should return 404 for non-existent entry during delete", async () => {
-      const nonExistentId = "00000000-0000-0000-0000-000000000000";
-      const { status } = await deleteEntry(nonExistentId);
-
-      expect(status).toBe(
-        404,
-        "DELETE should return 404 for non-existent entry"
-      );
-    });
-
-    it("should successfully delete entry and return 204", async () => {
-      const { status } = await deleteEntry(entryToDelete);
-
-      expect(status).toBe(
-        204,
-        "DELETE should return 204 for successful deletion"
-      );
-
-      const { status: getStatus } = await getEntry(entryToDelete);
-      expect(getStatus).toBe(404, "Deleted entry should not be found");
-    });
+    const { status: getStatus } = await getEntry(entryToDelete);
+    expect(getStatus).toBe(404, "Deleted entry should not be found");
   });
 });
 
@@ -536,251 +511,222 @@ describe("Task 7: Time Range Filtering", () => {
     await Promise.all(timeFilterEntries.map((entry) => deleteEntry(entry.id)));
   });
 
-  describe("GET /api/entries with date filtering", () => {
-    it("should filter entries by date range when both startDate and endDate provided", async () => {
-      const { status, body } = await listEntries(
-        `?startDate=${testDates.yesterday}&endDate=${testDates.tomorrow}`
+  it("should filter entries by date range when both startDate and endDate provided", async () => {
+    const { status, body } = await listEntries(
+      `?startDate=${testDates.yesterday}&endDate=${testDates.tomorrow}`
+    );
+
+    expect(status).toBe(200, "Date range filtering should return 200 OK");
+    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+
+    body.forEach((entry) => {
+      const entryDate = new Date(entry.createdAt);
+      const startDate = new Date(testDates.yesterday);
+      const endDate = new Date(testDates.tomorrow);
+
+      expect(entryDate >= startDate && entryDate <= endDate).toBe(
+        true,
+        `Entry date ${entry.createdAt} should be between ${testDates.yesterday} and ${testDates.tomorrow}`
       );
-
-      expect(status).toBe(200, "Date range filtering should return 200 OK");
-      expect(Array.isArray(body)).toBe(true, "Response should be an array");
-
-      body.forEach((entry) => {
-        const entryDate = new Date(entry.createdAt);
-        const startDate = new Date(testDates.yesterday);
-        const endDate = new Date(testDates.tomorrow);
-
-        expect(entryDate >= startDate && entryDate <= endDate).toBe(
-          true,
-          `Entry date ${entry.createdAt} should be between ${testDates.yesterday} and ${testDates.tomorrow}`
-        );
-      });
-    });
-
-    it("should return empty array for past date range with no entries", async () => {
-      const pastStart = "2000-01-01";
-      const pastEnd = "2000-01-02";
-      const { status, body } = await listEntries(
-        `?startDate=${pastStart}&endDate=${pastEnd}`
-      );
-
-      expect(status).toBe(
-        200,
-        "Past date range filtering should return 200 OK"
-      );
-      expect(body).toEqual(
-        [],
-        "Should return empty array for date range with no entries"
-      );
-    });
-
-    it("should handle single date parameter startDate only", async () => {
-      const { status, body } = await listEntries(
-        `?startDate=${testDates.yesterday}`
-      );
-
-      expect(status).toBe(
-        200,
-        "Start date only filtering should return 200 OK"
-      );
-      expect(Array.isArray(body)).toBe(true, "Response should be an array");
-    });
-
-    it("should handle single date parameter endDate only", async () => {
-      const { status, body } = await listEntries(
-        `?endDate=${testDates.tomorrow}`
-      );
-
-      expect(status).toBe(200, "End date only filtering should return 200 OK");
-      expect(Array.isArray(body)).toBe(true, "Response should be an array");
-    });
-
-    it("should return 400 for invalid date format with descriptive error", async () => {
-      const invalidDates = [
-        "invalid-date",
-        "2023-13-45",
-        "not-a-date",
-        "20230101",
-      ];
-
-      for (const invalidDate of invalidDates) {
-        const { status, body } = await listEntries(`?startDate=${invalidDate}`);
-
-        expect(status).toBe(
-          400,
-          `Should return 400 for invalid date: "${invalidDate}"`
-        );
-        expect(body).toHaveProperty("error");
-      }
     });
   });
 
-  describe("GET /api/mood/summary with date filtering", () => {
-    it("should filter mood summary by date range", async () => {
-      const { status, body } = await getMoodSummary(
-        `?startDate=${testDates.yesterday}&endDate=${testDates.tomorrow}`
-      );
+  it("should return empty array for past date range with no entries", async () => {
+    const pastStart = "2000-01-01";
+    const pastEnd = "2000-01-02";
+    const { status, body } = await listEntries(
+      `?startDate=${pastStart}&endDate=${pastEnd}`
+    );
+
+    expect(status).toBe(200, "Past date range filtering should return 200 OK");
+    expect(body).toEqual(
+      [],
+      "Should return empty array for date range with no entries"
+    );
+  });
+
+  it("should handle single date parameter startDate only", async () => {
+    const { status, body } = await listEntries(
+      `?startDate=${testDates.yesterday}`
+    );
+
+    expect(status).toBe(200, "Start date only filtering should return 200 OK");
+    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+  });
+
+  it("should handle single date parameter endDate only", async () => {
+    const { status, body } = await listEntries(
+      `?endDate=${testDates.tomorrow}`
+    );
+
+    expect(status).toBe(200, "End date only filtering should return 200 OK");
+    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+  });
+
+  it("should return 400 for invalid date format with descriptive error", async () => {
+    const invalidDates = [
+      "invalid-date",
+      "2023-13-45",
+      "not-a-date",
+      "20230101",
+    ];
+
+    for (const invalidDate of invalidDates) {
+      const { status, body } = await listEntries(`?startDate=${invalidDate}`);
 
       expect(status).toBe(
-        200,
-        "Date-filtered mood summary should return 200 OK"
+        400,
+        `Should return 400 for invalid date: "${invalidDate}"`
       );
-      expect(typeof body).toBe("object", "Response should be an object");
-
-      Object.keys(body).forEach((mood) => {
-        expect(typeof body[mood]).toBe(
-          "number",
-          `Count for mood "${mood}" should be a number`
-        );
-        expect(body[mood]).toBeGreaterThanOrEqual(
-          0,
-          `Count for mood "${mood}" should be non-negative`
-        );
-      });
-    });
-
-    it("should return empty object for past date range with no entries", async () => {
-      const pastStart = "2000-01-01";
-      const pastEnd = "2000-01-02";
-      const { status, body } = await getMoodSummary(
-        `?startDate=${pastStart}&endDate=${pastEnd}`
-      );
-
-      expect(status).toBe(
-        200,
-        "Past date range mood summary should return 200 OK"
-      );
-      expect(body).toEqual(
-        {},
-        "Should return empty object for date range with no entries"
-      );
-    });
-
-    it("should return 400 for invalid date format in mood summary", async () => {
-      const invalidDates = ["invalid-date", "2023-13-45", "not-a-date"];
-
-      for (const invalidDate of invalidDates) {
-        const { status, body } = await getMoodSummary(
-          `?startDate=${invalidDate}`
-        );
-
-        expect(status).toBe(
-          400,
-          `Mood summary should return 400 for invalid date: "${invalidDate}"`
-        );
-        expect(body).toHaveProperty("error");
-      }
-    });
-  });
-});
-
-describe("Integration Tests: Advanced Scenarios", () => {
-  describe("Complete Entry Lifecycle", () => {
-    it("should handle complete CRUD lifecycle with mood extraction and timestamps", async () => {
-      const originalText = "This is a wonderful day full of joy!";
-      const entryId = await createEntry(originalText);
-      expect(typeof entryId).toBe(
-        "string",
-        "Should create entry and return ID"
-      );
-
-      let { status, body } = await getEntry(entryId);
-      expect(status).toBe(200, "Should retrieve created entry");
-      expect(body.text).toBe(originalText, "Entry text should match");
-      expect(body).toHaveProperty("mood");
-      expect(body).toHaveProperty("createdAt");
-
-      const updatedText = "Now I am feeling very sad and depressed";
-      ({ status, body } = await updateEntry(entryId, updatedText));
-      expect(status).toBe(200, "Should update entry successfully");
-
-      ({ status, body } = await getEntry(entryId));
-      expect(status).toBe(200, "Should retrieve updated entry");
-      expect(body.text).toBe(updatedText, "Entry text should be updated");
-      expect(body).toHaveProperty("updatedAt");
-
-      ({ status } = await deleteEntry(entryId));
-      expect(status).toBe(204, "Should delete entry successfully");
-
-      ({ status } = await getEntry(entryId));
-      expect(status).toBe(404, "Deleted entry should not be found");
-    });
-  });
-
-  describe("Combined Filtering Scenarios", () => {
-    let combinedTestEntries = [];
-
-    beforeAll(async () => {
-      const testData = [
-        "Happy entry from today",
-        "Sad entry from today",
-        "Another happy entry",
-      ];
-
-      for (const text of testData) {
-        const id = await createEntry(text);
-        const { body } = await getEntry(id);
-        combinedTestEntries.push(body);
-      }
-    });
-
-    afterAll(async () => {
-      await Promise.all(
-        combinedTestEntries.map((entry) => deleteEntry(entry.id))
-      );
-    });
-
-    it("should handle combined mood and date filtering correctly", async () => {
-      const now = new Date();
-      const yesterday = new Date(now);
-      yesterday.setDate(now.getDate() - 1);
-      const tomorrow = new Date(now);
-      tomorrow.setDate(now.getDate() + 1);
-
-      const targetMood = combinedTestEntries[0].mood;
-
-      const { status, body } = await listEntries(
-        `?moods=${targetMood}&startDate=${fmt(yesterday)}&endDate=${fmt(
-          tomorrow
-        )}`
-      );
-
-      expect(status).toBe(200, "Combined filtering should return 200 OK");
-      expect(Array.isArray(body)).toBe(true, "Response should be an array");
-
-      body.forEach((entry) => {
-        expect(entry.mood).toBe(
-          targetMood,
-          `All entries should have mood "${targetMood}"`
-        );
-
-        const entryDate = new Date(entry.createdAt);
-        expect(entryDate >= yesterday && entryDate <= tomorrow).toBe(
-          true,
-          "All entries should be within date range"
-        );
-      });
-    });
-  });
-
-  describe("Edge Cases and Error Handling", () => {
-    it("should return 400 for multiple invalid parameters", async () => {
-      const { status, body } = await listEntries(
-        "?moods=&startDate=invalid&endDate=invalid"
-      );
-
-      expect(status).toBe(400, "Should return 400 for invalid date parameters");
       expect(body).toHaveProperty("error");
+    }
+  });
+
+  it("should filter mood summary by date range", async () => {
+    const { status, body } = await getMoodSummary(
+      `?startDate=${testDates.yesterday}&endDate=${testDates.tomorrow}`
+    );
+
+    expect(status).toBe(200, "Date-filtered mood summary should return 200 OK");
+    expect(typeof body).toBe("object", "Response should be an object");
+
+    Object.keys(body).forEach((mood) => {
+      expect(typeof body[mood]).toBe(
+        "number",
+        `Count for mood "${mood}" should be a number`
+      );
+      expect(body[mood]).toBeGreaterThanOrEqual(
+        0,
+        `Count for mood "${mood}" should be non-negative`
+      );
+    });
+  });
+
+  it("should return empty object for past date range with no entries", async () => {
+    const pastStart = "2000-01-01";
+    const pastEnd = "2000-01-02";
+    const { status, body } = await getMoodSummary(
+      `?startDate=${pastStart}&endDate=${pastEnd}`
+    );
+
+    expect(status).toBe(
+      200,
+      "Past date range mood summary should return 200 OK"
+    );
+    expect(body).toEqual(
+      {},
+      "Should return empty object for date range with no entries"
+    );
+  });
+
+  it("should return 400 for invalid date format in mood summary", async () => {
+    const invalidDates = ["invalid-date", "2023-13-45", "not-a-date"];
+
+    for (const invalidDate of invalidDates) {
+      const { status, body } = await getMoodSummary(
+        `?startDate=${invalidDate}`
+      );
+
+      expect(status).toBe(
+        400,
+        `Mood summary should return 400 for invalid date: "${invalidDate}"`
+      );
+      expect(body).toHaveProperty("error");
+    }
+  });
+
+  it("should handle complete CRUD lifecycle with mood extraction and timestamps", async () => {
+    const originalText = "This is a wonderful day full of joy!";
+    const entryId = await createEntry(originalText);
+    expect(typeof entryId).toBe("string", "Should create entry and return ID");
+
+    let { status, body } = await getEntry(entryId);
+    expect(status).toBe(200, "Should retrieve created entry");
+    expect(body.text).toBe(originalText, "Entry text should match");
+    expect(body).toHaveProperty("mood");
+    expect(body).toHaveProperty("createdAt");
+
+    const updatedText = "Now I am feeling very sad and depressed";
+    ({ status, body } = await updateEntry(entryId, updatedText));
+    expect(status).toBe(200, "Should update entry successfully");
+
+    ({ status, body } = await getEntry(entryId));
+    expect(status).toBe(200, "Should retrieve updated entry");
+    expect(body.text).toBe(updatedText, "Entry text should be updated");
+    expect(body).toHaveProperty("updatedAt");
+
+    ({ status } = await deleteEntry(entryId));
+    expect(status).toBe(204, "Should delete entry successfully");
+
+    ({ status } = await getEntry(entryId));
+    expect(status).toBe(404, "Deleted entry should not be found");
+  });
+
+  it("should handle combined mood and date filtering correctly", async () => {
+    let combinedTestEntries = [];
+    const testData = [
+      "Happy entry from today",
+      "Sad entry from today",
+      "Another happy entry",
+    ];
+
+    for (const text of testData) {
+      const id = await createEntry(text);
+      const { body } = await getEntry(id);
+      combinedTestEntries.push(body);
+    }
+
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+
+    const targetMood = combinedTestEntries[0].mood;
+
+    const { status, body } = await listEntries(
+      `?moods=${targetMood}&startDate=${fmt(yesterday)}&endDate=${fmt(
+        tomorrow
+      )}`
+    );
+
+    expect(status).toBe(200, "Combined filtering should return 200 OK");
+    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+
+    body.forEach((entry) => {
+      expect(entry.mood).toBe(
+        targetMood,
+        `All entries should have mood "${targetMood}"`
+      );
+
+      const entryDate = new Date(entry.createdAt);
+      expect(entryDate >= yesterday && entryDate <= tomorrow).toBe(
+        true,
+        "All entries should be within date range"
+      );
     });
 
-    it("should handle large text entries within reasonable limits", async () => {
-      const largeText = "A".repeat(1000);
-      const entryId = await createEntry(largeText);
+    await Promise.all(
+      combinedTestEntries.map((entry) => deleteEntry(entry.id))
+    );
+  });
 
-      const { status, body } = await getEntry(entryId);
-      expect(status).toBe(200, "Should handle large text entries");
-      expect(body.text).toBe(largeText, "Large text should be preserved");
-      expect(body).toHaveProperty("mood");
-    });
+  it("should return 400 for multiple invalid parameters", async () => {
+    const { status, body } = await listEntries(
+      "?moods=&startDate=invalid&endDate=invalid"
+    );
+
+    expect(status).toBe(400, "Should return 400 for invalid date parameters");
+    expect(body).toHaveProperty("error");
+  });
+
+  it("should handle large text entries within reasonable limits", async () => {
+    const largeText = "A".repeat(1000);
+    const entryId = await createEntry(largeText);
+
+    const { status, body } = await getEntry(entryId);
+    expect(status).toBe(200, "Should handle large text entries");
+    expect(body.text).toBe(largeText, "Large text should be preserved");
+    expect(body).toHaveProperty("mood");
   });
 });
