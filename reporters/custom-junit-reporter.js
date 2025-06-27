@@ -20,7 +20,7 @@ class CustomJunitReporter {
         failures: results.numFailedTests,
         errors: 0,
         time: totalTimeSecs,
-        timestamp: new Date(results.startTime).toISOString(),
+        timestamp: new Date(results.startTime).toISOString().replace(/Z$/, ''),
         hostname: os.hostname()
       });
 
@@ -31,7 +31,7 @@ class CustomJunitReporter {
         errors: 0,
         failures: suite.numFailingTests,
         skipped: suite.numPendingTests,
-        timestamp: new Date(suite.perfStats.start).toISOString(),
+        timestamp: new Date(suite.perfStats.start).toISOString().replace(/Z$/, ''),
         time: suiteTime,
         tests: suite.numPassingTests + suite.numFailingTests + suite.numPendingTests
       });
