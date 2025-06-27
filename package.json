@@ -4,16 +4,20 @@
   },
   "devDependencies": {
     "jest": "^29.0.0",
+    "jest-junit": "^13.0.0",
     "supertest": "^6.0.0",
-    "jest-junit": "^13.0.0"
+    "xmlbuilder2": "^3.1.1"
   },
   "jest": {
     "reporters": [
       "default",
-      ["jest-junit", {
-        "outputDirectory": "test-reports",
-        "outputName": "results.xml"
-      }]
+      [
+        "./reporters/custom-junit-reporter.js",
+        {
+          "outputDirectory": "test-reports",
+          "outputName": "results.xml"
+        }
+      ]
     ]
   }
 }
