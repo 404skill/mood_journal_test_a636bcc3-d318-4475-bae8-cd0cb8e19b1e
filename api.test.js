@@ -44,14 +44,13 @@ describe("Task 1: Health Check Endpoint", () => {
   it("should return 200 OK with correct JSON structure when checking health status", async () => {
     const { status, body } = await api.get("/api/health");
 
-    expect(status).toBe(200, "Health endpoint should return 200 OK status");
-    expect(body).toEqual(
-      { status: "OK" },
+    expect(status, "Health endpoint should return 200 OK status").toBe(200);
+    expect(
+      body,
       "Health endpoint should return correct JSON structure"
-    );
-    expect(typeof body.status).toBe(
-      "string",
-      "Health status should be a string"
+    ).toEqual({ status: "OK" });
+    expect(typeof body.status, "Health status should be a string").toBe(
+      "string"
     );
   });
 });
@@ -60,14 +59,14 @@ describe("Task 2: Journal Entry Model and POST Route", () => {
   it("should reject POST requests with missing text field", async () => {
     const { status, body } = await api.post("/api/entries").send({});
 
-    expect(status).toBe(
-      400,
+    expect(
+      status,
       "POST /api/entries should return 400 when text field is missing"
-    );
-    expect(body).toEqual(
-      { error: "Text must not be empty" },
+    ).toBe(400);
+    expect(
+      body,
       "Should return specific error message for missing text"
-    );
+    ).toEqual({ error: "Text must not be empty" });
   });
 
   it("should reject POST requests with empty or whitespace-only text", async () => {
@@ -78,14 +77,14 @@ describe("Task 2: Journal Entry Model and POST Route", () => {
         .post("/api/entries")
         .send({ text: invalidText });
 
-      expect(status).toBe(
-        400,
+      expect(
+        status,
         `POST /api/entries should return 400 for invalid text: "${invalidText}"`
-      );
-      expect(body).toEqual(
-        { error: "Text must not be empty" },
+      ).toBe(400);
+      expect(
+        body,
         `Should return error for whitespace text: "${invalidText}"`
-      );
+      ).toEqual({ error: "Text must not be empty" });
     }
   });
 
@@ -95,14 +94,13 @@ describe("Task 2: Journal Entry Model and POST Route", () => {
         .post("/api/entries")
         .send({ text: invalidText });
 
-      expect(status).toBe(
-        400,
+      expect(
+        status,
         `POST /api/entries should return 400 for ${invalidText} text`
-      );
-      expect(body).toEqual(
-        { error: "Text must not be empty" },
-        `Should return error for ${invalidText} text`
-      );
+      ).toBe(400);
+      expect(body, `Should return error for ${invalidText} text`).toEqual({
+        error: "Text must not be empty",
+      });
     }
   });
 
@@ -112,15 +110,14 @@ describe("Task 2: Journal Entry Model and POST Route", () => {
       .post("/api/entries")
       .send({ text: entryText });
 
-    expect(status).toBe(
-      201,
+    expect(
+      status,
       "POST /api/entries should return 201 Created for valid entry"
-    );
+    ).toBe(201);
     expect(body).toHaveProperty("id");
-    expect(typeof body.id).toBe("string", "Entry ID should be a string");
-    expect(body.id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-      "Entry ID should be a valid UUID format"
+    expect(typeof body.id, "Entry ID should be a string").toBe("string");
+    expect(body.id, "Entry ID should be a valid UUID format").toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     );
   });
 
@@ -129,14 +126,13 @@ describe("Task 2: Journal Entry Model and POST Route", () => {
 
     for (const text of validTexts.slice(0, 3)) {
       const { status, body } = await api.post("/api/entries").send({ text });
-      expect(status).toBe(201, `Should create entry for text: "${text}"`);
+      expect(status, `Should create entry for text: "${text}"`).toBe(201);
       ids.push(body.id);
     }
 
     const uniqueIds = new Set(ids);
-    expect(uniqueIds.size).toBe(
-      ids.length,
-      "All created entries should have unique IDs"
+    expect(uniqueIds.size, "All created entries should have unique IDs").toBe(
+      ids.length
     );
   });
 });
@@ -152,15 +148,15 @@ describe("Task 3: CRUD Operations", () => {
   it("should return 200 OK with array of entries when no query parameters provided", async () => {
     const { status, body } = await listEntries();
 
-    expect(status).toBe(200, "GET /api/entries should return 200 OK");
-    expect(Array.isArray(body)).toBe(true, "Response should be an array");
-    expect(body.length).toBeGreaterThan(0, "Should have at least one entry");
+    expect(status, "GET /api/entries should return 200 OK").toBe(200);
+    expect(Array.isArray(body), "Response should be an array").toBe(true);
+    expect(body.length, "Should have at least one entry").toBeGreaterThan(0);
   });
 
   it("should return entries with correct structure including all required fields", async () => {
     const { status, body } = await listEntries();
 
-    expect(status).toBe(200, "GET /api/entries should return 200 OK");
+    expect(status, "GET /api/entries should return 200 OK").toBe(200);
 
     const entry = body.find((e) => e.id === testEntryId);
     expect(entry).toBeDefined();
@@ -169,31 +165,28 @@ describe("Task 3: CRUD Operations", () => {
     expect(entry).toHaveProperty("createdAt");
     expect(entry).toHaveProperty("mood");
 
-    expect(typeof entry.id).toBe("string", "Entry ID should be string");
-    expect(typeof entry.text).toBe("string", "Entry text should be string");
-    expect(typeof entry.createdAt).toBe(
-      "string",
-      "Entry createdAt should be string"
+    expect(typeof entry.id, "Entry ID should be string").toBe("string");
+    expect(typeof entry.text, "Entry text should be string").toBe("string");
+    expect(typeof entry.createdAt, "Entry createdAt should be string").toBe(
+      "string"
     );
-    expect(typeof entry.mood).toBe("string", "Entry mood should be string");
+    expect(typeof entry.mood, "Entry mood should be string").toBe("string");
 
-    expect(entry.text).toBe(
-      testText,
-      "Entry text should match what was created"
+    expect(entry.text, "Entry text should match what was created").toBe(
+      testText
     );
   });
 
   it("should return 200 OK with correct entry for valid UUID", async () => {
     const { status, body } = await getEntry(testEntryId);
 
-    expect(status).toBe(
-      200,
+    expect(
+      status,
       "GET /api/entries/:id should return 200 for valid UUID"
-    );
-    expect(body).toHaveProperty(
+    ).toBe(200);
+    expect(body, "Should return entry with matching ID").toHaveProperty(
       "id",
-      testEntryId,
-      "Should return entry with matching ID"
+      testEntryId
     );
     expect(body.text).toBe(testText);
     expect(body).toHaveProperty("createdAt");
@@ -204,10 +197,10 @@ describe("Task 3: CRUD Operations", () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
     const { status } = await getEntry(nonExistentId);
 
-    expect(status).toBe(
-      404,
+    expect(
+      status,
       "GET /api/entries/:id should return 404 for non-existent entry"
-    );
+    ).toBe(404);
   });
 
   it("should return 400 for invalid UUID format", async () => {
@@ -215,10 +208,10 @@ describe("Task 3: CRUD Operations", () => {
 
     for (const invalidId of invalidIds) {
       const { status } = await getEntry(invalidId);
-      expect(status).toBe(
-        400,
+      expect(
+        status,
         `GET /api/entries/:id should return 400 for invalid UUID: "${invalidId}"`
-      );
+      ).toBe(400);
     }
   });
 
@@ -228,10 +221,10 @@ describe("Task 3: CRUD Operations", () => {
     )) {
       const { status, body } = await updateEntry(testEntryId, invalidText);
 
-      expect(status).toBe(
-        400,
+      expect(
+        status,
         `PUT should return 400 for invalid text: "${invalidText}"`
-      );
+      ).toBe(400);
       expect(body).toHaveProperty("error");
     }
   });
@@ -240,7 +233,7 @@ describe("Task 3: CRUD Operations", () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
     const { status } = await updateEntry(nonExistentId, "Updated text");
 
-    expect(status).toBe(404, "PUT should return 404 for non-existent entry");
+    expect(status, "PUT should return 404 for non-existent entry").toBe(404);
   });
 
   it("should return 400 for invalid UUID format during update", async () => {
@@ -248,10 +241,10 @@ describe("Task 3: CRUD Operations", () => {
 
     for (const invalidId of invalidIds) {
       const { status } = await updateEntry(invalidId, "Updated text");
-      expect(status).toBe(
-        400,
+      expect(
+        status,
         `PUT should return 400 for invalid UUID: "${invalidId}"`
-      );
+      ).toBe(400);
     }
   });
 
@@ -259,16 +252,16 @@ describe("Task 3: CRUD Operations", () => {
     const updatedText = "This is the updated text";
     const { status, body } = await updateEntry(testEntryId, updatedText);
 
-    expect(status).toBe(200, "PUT should return 200 for successful update");
-    expect(body).toEqual({ id: testEntryId }, "Should return updated entry ID");
+    expect(status, "PUT should return 200 for successful update").toBe(200);
+    expect(body, "Should return updated entry ID").toEqual({ id: testEntryId });
 
     const { body: updatedEntry } = await getEntry(testEntryId);
-    expect(updatedEntry.text).toBe(updatedText, "Entry text should be updated");
+    expect(updatedEntry.text, "Entry text should be updated").toBe(updatedText);
     expect(updatedEntry).toHaveProperty("updatedAt");
-    expect(typeof updatedEntry.updatedAt).toBe(
-      "string",
+    expect(
+      typeof updatedEntry.updatedAt,
       "updatedAt should be a string timestamp"
-    );
+    ).toBe("string");
   });
 
   it("should return 400 for invalid UUID format during delete", async () => {
@@ -276,10 +269,10 @@ describe("Task 3: CRUD Operations", () => {
 
     for (const invalidId of invalidIds) {
       const { status } = await deleteEntry(invalidId);
-      expect(status).toBe(
-        400,
+      expect(
+        status,
         `DELETE should return 400 for invalid UUID: "${invalidId}"`
-      );
+      ).toBe(400);
     }
   });
 
@@ -287,7 +280,7 @@ describe("Task 3: CRUD Operations", () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
     const { status } = await deleteEntry(nonExistentId);
 
-    expect(status).toBe(404, "DELETE should return 404 for non-existent entry");
+    expect(status, "DELETE should return 404 for non-existent entry").toBe(404);
   });
 
   it("should successfully delete entry and return 204", async () => {
@@ -295,13 +288,12 @@ describe("Task 3: CRUD Operations", () => {
     entryToDelete = await createEntry("Entry to be deleted");
     const { status } = await deleteEntry(entryToDelete);
 
-    expect(status).toBe(
-      204,
-      "DELETE should return 204 for successful deletion"
+    expect(status, "DELETE should return 204 for successful deletion").toBe(
+      204
     );
 
     const { status: getStatus } = await getEntry(entryToDelete);
-    expect(getStatus).toBe(404, "Deleted entry should not be found");
+    expect(getStatus, "Deleted entry should not be found").toBe(404);
   });
 });
 
@@ -312,10 +304,10 @@ describe("Task 4: Mood Extraction Service", () => {
 
     const { status, body } = await getEntry(entryId);
 
-    expect(status).toBe(200, "Should retrieve created entry");
+    expect(status, "Should retrieve created entry").toBe(200);
     expect(body).toHaveProperty("mood");
-    expect(typeof body.mood).toBe("string", "Mood should be a string");
-    expect(body.mood.length).toBeGreaterThan(0, "Mood should not be empty");
+    expect(typeof body.mood, "Mood should be a string").toBe("string");
+    expect(body.mood.length, "Mood should not be empty").toBeGreaterThan(0);
   });
 
   it("should handle mood extraction for entries with different emotional tones", async () => {
@@ -331,10 +323,10 @@ describe("Task 4: Mood Extraction Service", () => {
       const { body } = await getEntry(entryId);
 
       expect(body).toHaveProperty("mood");
-      expect(typeof body.mood).toBe(
-        "string",
+      expect(
+        typeof body.mood,
         `Mood should be string for text: "${text}"`
-      );
+      ).toBe("string");
     }
   });
 });
@@ -365,13 +357,12 @@ describe("Task 5: Mood Filtering", () => {
     const targetMood = testEntries[0].mood;
     const { status, body } = await listEntries(`?moods=${targetMood}`);
 
-    expect(status).toBe(200, "Mood filtering should return 200 OK");
-    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+    expect(status, "Mood filtering should return 200 OK").toBe(200);
+    expect(Array.isArray(body), "Response should be an array").toBe(true);
 
     body.forEach((entry) => {
-      expect(entry.mood).toBe(
-        targetMood,
-        `All entries should have mood "${targetMood}"`
+      expect(entry.mood, `All entries should have mood "${targetMood}"`).toBe(
+        targetMood
       );
     });
   });
@@ -382,32 +373,32 @@ describe("Task 5: Mood Filtering", () => {
       `?moods=${targetMoods.join(",")}`
     );
 
-    expect(status).toBe(200, "Multi-mood filtering should return 200 OK");
-    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+    expect(status, "Multi-mood filtering should return 200 OK").toBe(200);
+    expect(Array.isArray(body), "Response should be an array").toBe(true);
 
     body.forEach((entry) => {
-      expect(targetMoods).toContain(
-        entry.mood,
+      expect(
+        targetMoods,
         `Entry mood should be one of: ${targetMoods.join(", ")}`
-      );
+      ).toContain(entry.mood);
     });
   });
 
   it("should return empty array for non-existent mood", async () => {
     const { status, body } = await listEntries("?moods=nonexistentmood");
 
-    expect(status).toBe(200, "Non-existent mood filter should return 200 OK");
-    expect(body).toEqual([], "Should return empty array for non-existent mood");
+    expect(status, "Non-existent mood filter should return 200 OK").toBe(200);
+    expect(body, "Should return empty array for non-existent mood").toEqual([]);
   });
 
   it("should handle empty moods parameter gracefully", async () => {
     const { status, body } = await listEntries("?moods=");
 
-    expect(status).toBe(200, "Empty moods parameter should return 200 OK");
-    expect(Array.isArray(body)).toBe(
-      true,
+    expect(status, "Empty moods parameter should return 200 OK").toBe(200);
+    expect(
+      Array.isArray(body),
       "Should return array for empty moods parameter"
-    );
+    ).toBe(true);
   });
 });
 
@@ -437,42 +428,42 @@ describe("Task 6: Mood Summary Endpoint", () => {
   it("should return 200 OK with mood counts object", async () => {
     const { status, body } = await getMoodSummary();
 
-    expect(status).toBe(200, "GET /api/mood/summary should return 200 OK");
-    expect(typeof body).toBe("object", "Response should be an object");
+    expect(status, "GET /api/mood/summary should return 200 OK").toBe(200);
+    expect(typeof body, "Response should be an object").toBe("object");
     expect(body).not.toBeNull();
-    expect(Array.isArray(body)).toBe(false, "Response should not be an array");
+    expect(Array.isArray(body), "Response should not be an array").toBe(false);
   });
 
   it("should return counts for each mood present in database", async () => {
     const { status, body } = await getMoodSummary();
 
-    expect(status).toBe(200, "Mood summary should return 200 OK");
+    expect(status, "Mood summary should return 200 OK").toBe(200);
 
     Object.keys(body).forEach((mood) => {
-      expect(typeof body[mood]).toBe(
-        "number",
+      expect(
+        typeof body[mood],
         `Count for mood "${mood}" should be a number`
-      );
-      expect(body[mood]).toBeGreaterThanOrEqual(
-        0,
+      ).toBe("number");
+      expect(
+        body[mood],
         `Count for mood "${mood}" should be non-negative`
-      );
+      ).toBeGreaterThanOrEqual(0);
     });
   });
 
   it("should include moods from our test entries with correct counts", async () => {
     const { status, body } = await getMoodSummary();
 
-    expect(status).toBe(200, "Mood summary should return 200 OK");
+    expect(status, "Mood summary should return 200 OK").toBe(200);
 
     const testMoods = [...new Set(summaryTestEntries.map((e) => e.mood))];
 
     testMoods.forEach((mood) => {
       expect(body).toHaveProperty(mood);
-      expect(body[mood]).toBeGreaterThanOrEqual(
-        1,
+      expect(
+        body[mood],
         `Mood "${mood}" should have at least 1 entry`
-      );
+      ).toBeGreaterThanOrEqual(1);
     });
   });
 });
@@ -516,18 +507,18 @@ describe("Task 7: Time Range Filtering", () => {
       `?startDate=${testDates.yesterday}&endDate=${testDates.tomorrow}`
     );
 
-    expect(status).toBe(200, "Date range filtering should return 200 OK");
-    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+    expect(status, "Date range filtering should return 200 OK").toBe(200);
+    expect(Array.isArray(body), "Response should be an array").toBe(true);
 
     body.forEach((entry) => {
       const entryDate = new Date(entry.createdAt);
       const startDate = new Date(testDates.yesterday);
       const endDate = new Date(testDates.tomorrow);
 
-      expect(entryDate >= startDate && entryDate <= endDate).toBe(
-        true,
+      expect(
+        entryDate >= startDate && entryDate <= endDate,
         `Entry date ${entry.createdAt} should be between ${testDates.yesterday} and ${testDates.tomorrow}`
-      );
+      ).toBe(true);
     });
   });
 
@@ -538,11 +529,11 @@ describe("Task 7: Time Range Filtering", () => {
       `?startDate=${pastStart}&endDate=${pastEnd}`
     );
 
-    expect(status).toBe(200, "Past date range filtering should return 200 OK");
-    expect(body).toEqual(
-      [],
+    expect(status, "Past date range filtering should return 200 OK").toBe(200);
+    expect(
+      body,
       "Should return empty array for date range with no entries"
-    );
+    ).toEqual([]);
   });
 
   it("should handle single date parameter startDate only", async () => {
@@ -550,8 +541,8 @@ describe("Task 7: Time Range Filtering", () => {
       `?startDate=${testDates.yesterday}`
     );
 
-    expect(status).toBe(200, "Start date only filtering should return 200 OK");
-    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+    expect(status, "Start date only filtering should return 200 OK").toBe(200);
+    expect(Array.isArray(body), "Response should be an array").toBe(true);
   });
 
   it("should handle single date parameter endDate only", async () => {
@@ -559,8 +550,8 @@ describe("Task 7: Time Range Filtering", () => {
       `?endDate=${testDates.tomorrow}`
     );
 
-    expect(status).toBe(200, "End date only filtering should return 200 OK");
-    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+    expect(status, "End date only filtering should return 200 OK").toBe(200);
+    expect(Array.isArray(body), "Response should be an array").toBe(true);
   });
 
   it("should return 400 for invalid date format with descriptive error", async () => {
@@ -574,10 +565,10 @@ describe("Task 7: Time Range Filtering", () => {
     for (const invalidDate of invalidDates) {
       const { status, body } = await listEntries(`?startDate=${invalidDate}`);
 
-      expect(status).toBe(
-        400,
+      expect(
+        status,
         `Should return 400 for invalid date: "${invalidDate}"`
-      );
+      ).toBe(400);
       expect(body).toHaveProperty("error");
     }
   });
@@ -587,18 +578,18 @@ describe("Task 7: Time Range Filtering", () => {
       `?startDate=${testDates.yesterday}&endDate=${testDates.tomorrow}`
     );
 
-    expect(status).toBe(200, "Date-filtered mood summary should return 200 OK");
-    expect(typeof body).toBe("object", "Response should be an object");
+    expect(status, "Date-filtered mood summary should return 200 OK").toBe(200);
+    expect(typeof body, "Response should be an object").toBe("object");
 
     Object.keys(body).forEach((mood) => {
-      expect(typeof body[mood]).toBe(
-        "number",
+      expect(
+        typeof body[mood],
         `Count for mood "${mood}" should be a number`
-      );
-      expect(body[mood]).toBeGreaterThanOrEqual(
-        0,
+      ).toBe("number");
+      expect(
+        body[mood],
         `Count for mood "${mood}" should be non-negative`
-      );
+      ).toBeGreaterThanOrEqual(0);
     });
   });
 
@@ -609,14 +600,13 @@ describe("Task 7: Time Range Filtering", () => {
       `?startDate=${pastStart}&endDate=${pastEnd}`
     );
 
-    expect(status).toBe(
-      200,
-      "Past date range mood summary should return 200 OK"
+    expect(status, "Past date range mood summary should return 200 OK").toBe(
+      200
     );
-    expect(body).toEqual(
-      {},
+    expect(
+      body,
       "Should return empty object for date range with no entries"
-    );
+    ).toEqual({});
   });
 
   it("should return 400 for invalid date format in mood summary", async () => {
@@ -627,10 +617,10 @@ describe("Task 7: Time Range Filtering", () => {
         `?startDate=${invalidDate}`
       );
 
-      expect(status).toBe(
-        400,
+      expect(
+        status,
         `Mood summary should return 400 for invalid date: "${invalidDate}"`
-      );
+      ).toBe(400);
       expect(body).toHaveProperty("error");
     }
   });
@@ -638,28 +628,28 @@ describe("Task 7: Time Range Filtering", () => {
   it("should handle complete CRUD lifecycle with mood extraction and timestamps", async () => {
     const originalText = "This is a wonderful day full of joy!";
     const entryId = await createEntry(originalText);
-    expect(typeof entryId).toBe("string", "Should create entry and return ID");
+    expect(typeof entryId, "Should create entry and return ID").toBe("string");
 
     let { status, body } = await getEntry(entryId);
-    expect(status).toBe(200, "Should retrieve created entry");
-    expect(body.text).toBe(originalText, "Entry text should match");
+    expect(status, "Should retrieve created entry").toBe(200);
+    expect(body.text, "Entry text should match").toBe(originalText);
     expect(body).toHaveProperty("mood");
     expect(body).toHaveProperty("createdAt");
 
     const updatedText = "Now I am feeling very sad and depressed";
     ({ status, body } = await updateEntry(entryId, updatedText));
-    expect(status).toBe(200, "Should update entry successfully");
+    expect(status, "Should update entry successfully").toBe(200);
 
     ({ status, body } = await getEntry(entryId));
-    expect(status).toBe(200, "Should retrieve updated entry");
-    expect(body.text).toBe(updatedText, "Entry text should be updated");
+    expect(status, "Should retrieve updated entry").toBe(200);
+    expect(body.text, "Entry text should be updated").toBe(updatedText);
     expect(body).toHaveProperty("updatedAt");
 
     ({ status } = await deleteEntry(entryId));
-    expect(status).toBe(204, "Should delete entry successfully");
+    expect(status, "Should delete entry successfully").toBe(204);
 
     ({ status } = await getEntry(entryId));
-    expect(status).toBe(404, "Deleted entry should not be found");
+    expect(status, "Deleted entry should not be found").toBe(404);
   });
 
   it("should handle combined mood and date filtering correctly", async () => {
@@ -690,20 +680,19 @@ describe("Task 7: Time Range Filtering", () => {
       )}`
     );
 
-    expect(status).toBe(200, "Combined filtering should return 200 OK");
-    expect(Array.isArray(body)).toBe(true, "Response should be an array");
+    expect(status, "Combined filtering should return 200 OK").toBe(200);
+    expect(Array.isArray(body), "Response should be an array").toBe(true);
 
     body.forEach((entry) => {
-      expect(entry.mood).toBe(
-        targetMood,
-        `All entries should have mood "${targetMood}"`
+      expect(entry.mood, `All entries should have mood "${targetMood}"`).toBe(
+        targetMood
       );
 
       const entryDate = new Date(entry.createdAt);
-      expect(entryDate >= yesterday && entryDate <= tomorrow).toBe(
-        true,
+      expect(
+        entryDate >= yesterday && entryDate <= tomorrow,
         "All entries should be within date range"
-      );
+      ).toBe(true);
     });
 
     await Promise.all(
@@ -716,7 +705,7 @@ describe("Task 7: Time Range Filtering", () => {
       "?moods=&startDate=invalid&endDate=invalid"
     );
 
-    expect(status).toBe(400, "Should return 400 for invalid date parameters");
+    expect(status, "Should return 400 for invalid date parameters").toBe(400);
     expect(body).toHaveProperty("error");
   });
 
@@ -725,8 +714,8 @@ describe("Task 7: Time Range Filtering", () => {
     const entryId = await createEntry(largeText);
 
     const { status, body } = await getEntry(entryId);
-    expect(status).toBe(200, "Should handle large text entries");
-    expect(body.text).toBe(largeText, "Large text should be preserved");
+    expect(status, "Should handle large text entries").toBe(200);
+    expect(body.text, "Large text should be preserved").toBe(largeText);
     expect(body).toHaveProperty("mood");
   });
 });
