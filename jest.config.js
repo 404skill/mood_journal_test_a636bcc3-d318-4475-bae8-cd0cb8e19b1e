@@ -4,7 +4,7 @@ module.exports = {
   reporters: [
     "default",
     [
-      "<rootDir>/reporters/custom-junit-reporter.js",
+      "/app/reporters/custom-junit-reporter.js",
       {
         outputDirectory: "test-reports",
         outputName: "results.xml",
