@@ -1,7 +1,7 @@
 jest.setTimeout(30000);
 
 const request = require("supertest");
-const api = request("http://mood-journal-api:3000");
+const api = request("http://mood-journal-api-a636bcc3-d318-4475-bae8-cd0cb8e19b1e:3000");
 
 const fmt = (d) => d.toISOString().split("T")[0];
 
