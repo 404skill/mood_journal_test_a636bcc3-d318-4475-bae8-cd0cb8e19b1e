@@ -1,12 +1,6 @@
 FROM node:24
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
-
-COPY . .
-
-RUN mkdir -p test-reports
-
-CMD ["npm", "test"]
+# Install dependencies and run tests after volume mount
+CMD ["sh", "-c", "npm ci --include=dev && npm test"]
