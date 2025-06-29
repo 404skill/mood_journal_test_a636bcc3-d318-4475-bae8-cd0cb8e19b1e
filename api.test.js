@@ -195,12 +195,13 @@ describe("Task 3: CRUD Operations", () => {
 
   it("should return 404 for non-existent but valid UUID", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
-    const { status } = await getEntry(nonExistentId);
+    const { status, body } = await getEntry(nonExistentId);
 
     expect(
       status,
       "GET /api/entries/:id should return 404 for non-existent entry"
     ).toBe(404);
+    expect(body).toHaveProperty("error");
   });
 
   it("should return 400 for invalid UUID format", async () => {
@@ -231,9 +232,10 @@ describe("Task 3: CRUD Operations", () => {
 
   it("should return 404 for non-existent entry during update", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
-    const { status } = await updateEntry(nonExistentId, "Updated text");
+    const { status, body } = await updateEntry(nonExistentId, "Updated text");
 
     expect(status, "PUT should return 404 for non-existent entry").toBe(404);
+    expect(body).toHaveProperty("error");
   });
 
   it("should return 400 for invalid UUID format during update", async () => {
@@ -278,9 +280,10 @@ describe("Task 3: CRUD Operations", () => {
 
   it("should return 404 for non-existent entry during delete", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000";
-    const { status } = await deleteEntry(nonExistentId);
+    const { status, body } = await deleteEntry(nonExistentId);
 
     expect(status, "DELETE should return 404 for non-existent entry").toBe(404);
+    expect(body).toHaveProperty("error");
   });
 
   it("should successfully delete entry and return 204", async () => {
